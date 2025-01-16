@@ -1,1 +1,1 @@
-# ProgramDoWystawianiaFaktur Prosy program do tworzenia Faktur.
+# ProgramDoWystawianiaFaktur Prosty program do tworzenia Faktur.
