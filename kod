@@ -1,0 +1,150 @@
+namespace hurtowniaGenerowanieFaktur
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("==================");
+            Console.WriteLine("GENEROWANIE FAKTUR");
+            Console.WriteLine("==================");
+            Console.WriteLine("|Prosze podać scieżke pliku z Danymi (bez .txt)|");
+            string sciezkaKlienta = Console.ReadLine();
+            Console.WriteLine(sciezkaKlienta);
+            Console.WriteLine("|Prawidłowa scieżka (Kliknij 1) Nieprawidłowa scieżka (Kliknij 2)|");
+            string odpowiedzKlient = Console.ReadLine();
+            Sprawdzanieklienta(odpowiedzKlient, sciezkaKlienta);
+            Console.WriteLine("|Prosze Podać scieżke pliku Towarów (bez .txt)|");
+            string sciezkaTowar = Console.ReadLine();
+            Console.WriteLine("|Prawidłowa scieżka (Kliknij 1) Nieprawidłowa scieżka (Kliknij 2)|");
+            string odpowiedzTowar = Console.ReadLine();
+            SprawdzanieTowaru(odpowiedzTowar, sciezkaTowar);
+
+            List<Klient> klienci = WczytajKlienta(sciezkaKlienta);
+            List<Towar> towary = WczytajTowar(sciezkaTowar);
+
+            Console.WriteLine("|Podaj ID Klienta |");
+            string klientId = Console.ReadLine();
+            Klient wybranyKlient = klienci.Find(k => k.Id == klientId);
+            if (wybranyKlient == null)
+            {
+                Console.WriteLine("Nie znaleziono klienta o tym ID!");
+                return;
+            }
+            List<Towar> wybraneTowary = new List<Towar>();
+            while (true)
+            {
+                Console.WriteLine("|Podaj Id towaru (lub wpisz 'exit' , aby zakończyć program");
+                string towarId = Console.ReadLine();
+                if (towarId.ToLower() == "exit")
+                {
+                    break;
+                }
+                Towar towar = towary.Find(t => t.Id == towarId);
+                if (towar != null)
+                {
+                    wybraneTowary.Add(towar);
+                    Console.WriteLine($"|Dodano Towar {towar.Name}|");
+                }
+                else
+                {
+                    Console.WriteLine("Nie znaleziono Towaru!");
+                }
+
+            }
+            Console.WriteLine("|Podaj nazwe pliku Faktury|");
+            string sciezkaFaktury = Console.ReadLine();
+            GenerujFakture(wybranyKlient, wybraneTowary, sciezkaFaktury);
+
+            Console.WriteLine($"Faktura została zapisana w pliku: {sciezkaFaktury}");
+
+
+
+
+
+
+
+        }
+        static void Sprawdzanieklienta(string odpowiedzKlient, string sciezkaKlienta)
+        {
+            if (odpowiedzKlient == "1")
+            {
+                return;
+            }
+            else
+            {
+                Console.WriteLine("|Podaj ponownie scieżke Klienta|");
+                sciezkaKlienta = Console.ReadLine();
+                return;
+
+            }
+
+        }
+        static void SprawdzanieTowaru(string odpowiedzTowar, string sciezkaTowar)
+        {
+            if (odpowiedzTowar == "1")
+            {
+                return;
+            }
+            else
+            {
+                Console.WriteLine("|Podaj ponownie scieżke Towaru|");
+                sciezkaTowar = Console.ReadLine();
+                return;
+            }
+
+        }
+        static List<Klient> WczytajKlienta(string sciezkaKlienta)
+        {
+            if (!File.Exists(sciezkaKlienta))
+            {
+                Console.WriteLine("Aktualny katalog roboczy: " + Environment.CurrentDirectory);
+                throw new FileNotFoundException($"Plik {sciezkaKlienta} nie istnieje!");
+            }
+            List<Klient> klienci = new List<Klient>();
+            foreach (var linia in File.ReadAllLines(sciezkaKlienta))
+            {
+                string[] danePliku = linia.Split(",");
+                klienci.Add(new Klient { Id = danePliku[0], Name = danePliku[1], Adres = danePliku[2] });
+            }
+            return klienci;
+
+
+        }
+        static List<Towar> WczytajTowar(string sciezkaTowar)
+        {
+            List<Towar> towary = new List<Towar>();
+            if (!File.Exists(sciezkaTowar))
+            {
+                throw new FileNotFoundException($"Plik {sciezkaTowar} nie istnieje!");
+
+            }
+            foreach (var linia in File.ReadAllLines(sciezkaTowar))
+            {
+                string[] danePliku = linia.Split(".");
+                towary.Add(new Towar { Id = danePliku[0], Name = danePliku[1], Price = decimal.Parse(danePliku[2]) });
+            }
+            return towary;
+        }
+        static void GenerujFakture(Klient klient, List<Towar> towary, string sciezkaFaktury)
+        {
+            using (StreamWriter writer = new StreamWriter(sciezkaFaktury))
+            {
+                writer.WriteLine("FAKTURA");
+                writer.WriteLine("================");
+                writer.WriteLine($"Klient: {klient.Name}.");
+                writer.WriteLine($"Adres: {klient.Adres}.");
+                writer.WriteLine($"Czas Wystawienia Faktury: {DateTime.Now}");
+                writer.WriteLine($"Data Wystawienia Faktury: {DateTime.Today.ToString("yyyy-MM-dd")}");
+
+                decimal suma = 0;
+                foreach (var towar in towary)
+                {
+
+                    writer.WriteLine($"Towar: {towar.Name}, Cena: {towar.Price}.");
+                    suma += towar.Price;
+                }
+                writer.WriteLine($"suma: {suma}zł");
+            }
+        }
+    }
+}
